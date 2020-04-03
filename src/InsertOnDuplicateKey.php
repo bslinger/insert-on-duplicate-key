@@ -18,7 +18,7 @@ trait InsertOnDuplicateKey
      *
      * @return int 0 if row is not changed, 1 if row is inserted, 2 if row is updated
      */
-    public static function insertOnDuplicateKey(array $data, array $updateColumns = null)
+    public static function insertOnDuplicateKey(array $data, array $updateColumns = null, array $ignoreColumns = [])
     {
         if (empty($data)) {
             return false;
@@ -29,7 +29,7 @@ trait InsertOnDuplicateKey
             $data = [$data];
         }
 
-        $sql = static::buildInsertOnDuplicateSql($data, $updateColumns);
+        $sql = static::buildInsertOnDuplicateSql($data, $updateColumns, $ignoreColumns);
 
         $data = static::inLineArray($data);
 
@@ -231,7 +231,7 @@ trait InsertOnDuplicateKey
      *
      * @return string
      */
-    protected static function buildInsertOnDuplicateSql(array $data, array $updateColumns = null)
+    protected static function buildInsertOnDuplicateSql(array $data, array $updateColumns = null, array $ignoreColumns = [])
     {
         $first = static::getFirstRow($data);
 
@@ -240,9 +240,9 @@ trait InsertOnDuplicateKey
         $sql .= 'ON DUPLICATE KEY UPDATE ';
 
         if (empty($updateColumns)) {
-            $sql .= static::buildValuesList(array_keys($first));
+            $sql .= static::buildValuesList(array_diff(array_keys($first), $ignoreColumns));
         } else {
-            $sql .= static::buildValuesList($updateColumns);
+            $sql .= static::buildValuesList(array_diff($updateColumns, $ignoreColumns));
         }
 
         return $sql;
